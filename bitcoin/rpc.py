@@ -450,3 +450,10 @@ class Proxy(RawProxy):
 
     def removenode(self, node):
         return self._addnode(node, 'remove')
+
+    #########  added by simon ########
+
+    def listreceivedbyaddress(self, minconf=1, includeempty=False):
+        return self._call('listreceivedbyaddress', minconf, includeempty)
+
+
