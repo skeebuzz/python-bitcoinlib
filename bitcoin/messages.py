@@ -15,15 +15,15 @@ import struct
 import time
 import random
 import sys
-from binascii import hexlify
+
 if sys.version > '3':
     import io
 else:
     import cStringIO as io
 
-from .core import *
-from .core.serialize import *
-from .net import *
+from bitcoin.core import *
+from bitcoin.core.serialize import *
+from bitcoin.net import *
 from bitcoin import MainParams
 
 MSG_TX = 1
@@ -71,7 +71,7 @@ class MsgSerializable(Serializable):
         # check magic
         if recvbuf[:4] != params.MESSAGE_START:
             raise ValueError("Invalid message start '%s', expected '%s'" %
-                             (recvbuf[:4], params.MESSAGE_START))
+                             (b2x(recvbuf[:4]), b2x(params.MESSAGE_START)))
 
         # remaining header fields: command, msg length, checksum
         command = recvbuf[4:4+12].split(b"\x00", 1)[0]
@@ -271,7 +271,7 @@ class msg_getblocks(MsgSerializable):
         f.write(self.hashstop)
 
     def __repr__(self):
-        return "msg_getblocks(locator=%s hashstop=%s)" % (repr(self.locator), hexlify(self.hashstop))
+        return "msg_getblocks(locator=%s hashstop=%s)" % (repr(self.locator), b2x(self.hashstop))
 
 
 class msg_getheaders(MsgSerializable):
@@ -294,7 +294,7 @@ class msg_getheaders(MsgSerializable):
         f.write(self.hashstop)
 
     def __repr__(self):
-        return "msg_getheaders(locator=%s hashstop=%s)" % (repr(self.locator), hexlify(self.hashstop))
+        return "msg_getheaders(locator=%s hashstop=%s)" % (repr(self.locator), b2x(self.hashstop))
 
 
 class msg_headers(MsgSerializable):
@@ -372,10 +372,6 @@ class msg_getaddr(MsgSerializable):
 
     def __repr__(self):
         return "msg_getaddr()"
-
-#msg_checkorder
-#msg_submitorder
-#msg_reply
 
 
 class msg_ping(MsgSerializable):

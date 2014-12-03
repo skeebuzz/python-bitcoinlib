@@ -322,6 +322,21 @@ class Proxy(RawProxy):
 
         return r
 
+    def getreceivedbyaddress(self, addr, minconf=1):
+        """Return total amount received by given a (wallet) address
+
+        Get the amount received by <address> in transactions with at least
+        [minconf] confirmations.
+
+        Works only for addresses in the local wallet; other addresses will
+        always show zero.
+
+        addr    - The address. (CBitcoinAddress instance)
+        minconf - Only include transactions confirmed at least this many times. (default=1)
+        """
+        r = self._call('getreceivedbyaddress', str(addr), minconf)
+        return int(r * COIN)
+
     def gettransaction(self, txid):
         """Get detailed information about in-wallet transaction txid
 
