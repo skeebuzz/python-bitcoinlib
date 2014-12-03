@@ -466,9 +466,44 @@ class Proxy(RawProxy):
     def removenode(self, node):
         return self._addnode(node, 'remove')
 
-    #########  added by simon ########
-
     def listreceivedbyaddress(self, minconf=1, includeempty=False):
+        """
+        List the bitcoin addresses in the local wallet. Set minconf to 0 and includeempty to True to list all addresses
+
+        minconf - list addresses with at least this number of confirmations
+        includeempty - include empty wallets
+        """
         return self._call('listreceivedbyaddress', minconf, includeempty)
+
+    def sendfrom(self, fromaccount, tobitcoinaddress, amount, minconf=1):
+        """
+        Send given amount to given address, from the given address
+
+        minconf - number of confirmations to use to ensure from account has valid balance
+        """
+        return self._call('sendfrom', fromaccount, tobitcoinaddress, amount, minconf)
+
+    def createrawtransaction(self, utxoarr, toaddresses):
+        """
+        Creates a raw transaction
+
+        utxoarr - json array of unspent transaction outputs to spend
+        toaddresses - addresses and amounts
+        """
+        return self._call('createrawtransaction', utxoarr, toaddresses)
+
+    def setaccount(self, bitcoinaddress, account):
+        """
+        Sets the account associated with the given address
+
+        """
+        return self._call('setaccount', bitcoinaddress, account)
+
+    def getblockcount(self):
+        """
+        Returns the number of blocks in the longest blockchain
+
+        """
+        return int(self._call('getblockcount'))
 
 
