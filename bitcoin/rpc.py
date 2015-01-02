@@ -345,9 +345,10 @@ class Proxy(RawProxy):
         FIXME: Returned data types are not yet converted.
         """
         try:
-            r = self._call('gettransaction', b2lx(txid))
+            # r = self._call('gettransaction', b2lx(txid))
+            r = self._call('gettransaction', txid)
         except JSONRPCException as ex:
-            raise IndexError('%s.getrawtransaction(): %s (%d)' %
+            raise IndexError('%s.gettransaction(): %s (%d)' %
                     (self.__class__.__name__, ex.error['message'], ex.error['code']))
         return r
 
@@ -400,6 +401,15 @@ class Proxy(RawProxy):
         """Lock or unlock outpoints"""
         json_outpoints = [{'txid':b2lx(outpoint.hash),'vout':outpoint.n} for outpoint in outpoints]
         return self._call('lockunspent', unlock, json_outpoints)
+
+
+    def decoderawtransaction(self, hextx):
+        """
+        Decodes a raw transaction.
+
+        hextx - the raw transaction
+        """
+        return self._call('decoderawtransaction', hextx)
 
     def sendrawtransaction(self, tx, allowhighfees=False):
         """Submit transaction to local node and network.
