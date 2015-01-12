@@ -516,4 +516,6 @@ class Proxy(RawProxy):
         """
         return int(self._call('getblockcount'))
 
+    def sendfrom(self, fromaccount, tobitcoinaddress, amount, minconf=1):
+        return self._call('sendfrom', fromaccount, tobitcoinaddress, amount, minconf)
 
