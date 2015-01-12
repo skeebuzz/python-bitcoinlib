@@ -9,7 +9,7 @@
 # propagated, or distributed except according to the terms contained in the
 # LICENSE file.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
 import binascii
 import hashlib
@@ -28,16 +28,10 @@ MAX_MONEY = 21000000 * COIN
 MAX_BLOCK_SIZE = 1000000
 MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50
 
-BIP0031_VERSION = 60000
-PROTO_VERSION = 60002
-MIN_PROTO_VERSION = 209
-
-CADDR_TIME_VERSION = 31402
-
 def MoneyRange(nValue):
     return 0 <= nValue <= MAX_MONEY
 
-def py2_x(h):
+def _py2_x(h):
     """Convert a hex string to bytes"""
     return binascii.unhexlify(h)
 
@@ -45,7 +39,7 @@ def x(h):
     """Convert a hex string to bytes"""
     return binascii.unhexlify(h.encode('utf8'))
 
-def py2_b2x(b):
+def _py2_b2x(b):
     """Convert bytes to a hex string"""
     return binascii.hexlify(b)
 
@@ -53,7 +47,7 @@ def b2x(b):
     """Convert bytes to a hex string"""
     return binascii.hexlify(b).decode('utf8')
 
-def py2_lx(h):
+def _py2_lx(h):
     """Convert a little-endian hex string to bytes
 
     Lets you write uint256's and uint160's the way the Satoshi codebase shows
@@ -69,7 +63,7 @@ def lx(h):
     """
     return binascii.unhexlify(h.encode('utf8'))[::-1]
 
-def py2_b2lx(b):
+def _py2_b2lx(b):
     """Convert bytes to a little-endian hex string
 
     Lets you show uint256's and uint160's the way the Satoshi codebase shows
@@ -86,15 +80,15 @@ def b2lx(b):
     return binascii.hexlify(b[::-1]).decode('utf8')
 
 if not (sys.version > '3'):
-    x = py2_x
-    b2x = py2_b2x
-    lx = py2_lx
-    b2lx = py2_b2lx
+    x = _py2_x
+    b2x = _py2_b2x
+    lx = _py2_lx
+    b2lx = _py2_b2lx
 
-del py2_x
-del py2_b2x
-del py2_lx
-del py2_b2lx
+del _py2_x
+del _py2_b2x
+del _py2_lx
+del _py2_b2lx
 
 
 def str_money_value(value):
@@ -738,3 +732,42 @@ def CheckBlock(block, fCheckPoW = True, fCheckMerkleRoot = True, cur_time=None):
     # Check merkle root
     if fCheckMerkleRoot and block.hashMerkleRoot != block.calc_merkle_root():
         raise CheckBlockError("CheckBlock() : hashMerkleRoot mismatch")
+
+__all__ = (
+        'Hash',
+        'Hash160',
+        'COIN',
+        'MAX_MONEY',
+        'MAX_BLOCK_SIZE',
+        'MAX_BLOCK_SIGOPS',
+        'MoneyRange',
+        'x',
+        'b2x',
+        'lx',
+        'b2lx',
+        'str_money_value',
+        'ValidationError',
+        'COutPoint',
+        'CMutableOutPoint',
+        'CTxIn',
+        'CMutableTxIn',
+        'CTxOut',
+        'CMutableTxOut',
+        'CTransaction',
+        'CMutableTransaction',
+        'CBlockHeader',
+        'CBlock',
+        'CoreChainParams',
+        'CoreMainParams',
+        'CoreTestNetParams',
+        'CoreRegTestParams',
+        'CheckTransactionError',
+        'CheckTransaction',
+        'CheckBlockHeaderError',
+        'CheckProofOfWorkError',
+        'CheckProofOfWork',
+        'CheckBlockHeader',
+        'CheckBlockError',
+        'GetLegacySigOpCount',
+        'CheckBlock',
+)

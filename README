@@ -26,7 +26,6 @@ consensus critical and non-consensus-critical.
 
 bitcoin.core            - Basic core definitions, datastructures, and
                           (context-independent) validation
-bitcoin.core.bignum     - Bignum handling
 bitcoin.core.key        - ECC pubkeys
 bitcoin.core.script     - Scripts and opcodes
 bitcoin.core.scripteval - Script evaluation/verification
@@ -67,6 +66,14 @@ SHA256. python-bitcoinlib provides the convenience functions x() and lx() in
 bitcoin.core to convert from big-endian and little-endian hex to raw bytes to
 accomodate this. In addition see b2x() and b2lx() for conversion from bytes to
 big/little-endian hex.
+
+
+Module import style
+-------------------
+
+While not always good style, it's often convenient for quick scripts if import
+* can be used. To support that all the modules have __all__ defined
+appropriately.
 
 
 Example Code
