@@ -517,3 +517,9 @@ class Proxy(RawProxy):
         return int(self._call('getblockcount'))
 
 
+    def dumpprivkey(self, bitcoinaddress):
+        """
+        Returns the private key of the given bitcoinaddress
+        """
+        return self._call('dumpprivkey', bitcoinaddress)
+
