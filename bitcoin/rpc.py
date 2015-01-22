@@ -1,5 +1,5 @@
 # Copyright (C) 2007 Jan-Klaas Kollhof
-# Copyright (C) 2011-2014 The python-bitcoinlib developers
+# Copyright (C) 2011-2015 The python-bitcoinlib developers
 #
 # This file is part of python-bitcoinlib.
 #
@@ -33,11 +33,11 @@ except ImportError:
 import bitcoin
 from bitcoin.core import COIN, lx, b2lx, CBlock, CTransaction, COutPoint, CTxOut
 from bitcoin.core.script import CScript
-from bitcoin.wallet import CBitcoinAddress
+from bitcoin.wallet import CBitcoinAddress, CBitcoinSecret
 
-USER_AGENT = "AuthServiceProxy/0.1"
+DEFAULT_USER_AGENT = "AuthServiceProxy/0.1"
 
-HTTP_TIMEOUT = 30
+DEFAULT_HTTP_TIMEOUT = 30
 
 # (un)hexlify to/from unicode, needed for Python3
 unhexlify = binascii.unhexlify
@@ -55,11 +55,10 @@ class JSONRPCException(Exception):
 
 
 class RawProxy(object):
-    # FIXME: need a CChainParams rather than hard-coded service_port
     def __init__(self, service_url=None,
                        service_port=None,
                        btc_conf_file=None,
-                       timeout=HTTP_TIMEOUT,
+                       timeout=DEFAULT_HTTP_TIMEOUT,
                        _connection=None):
         """Low-level JSON-RPC proxy
 
@@ -79,7 +78,8 @@ class RawProxy(object):
 
             # Extract contents of bitcoin.conf to build service_url
             with open(btc_conf_file, 'r') as fd:
-                conf = {}
+                # Bitcoin Core accepts empty rpcuser, not specified in btc_conf_file
+                conf = {'rpcuser': ""}
                 for line in fd.readlines():
                     if '#' in line:
                         line = line[:line.index('#')]
@@ -100,6 +100,9 @@ class RawProxy(object):
                 else:
                     raise ValueError('Unknown rpcssl value %r' % conf['rpcssl'])
 
+                if 'rpcpassword' not in conf:
+                    raise ValueError('The value of rpcpassword not specified in the configuration file: %s' % btc_conf_file)
+
                 service_url = ('%s://%s:%s@localhost:%d' %
                     ('https' if conf['rpcssl'] else 'http',
                      conf['rpcuser'], conf['rpcpassword'],
@@ -108,7 +111,10 @@ class RawProxy(object):
         self.__service_url = service_url
         self.__url = urlparse.urlparse(service_url)
         if self.__url.port is None:
-            port = 80
+            if self.__url.scheme == 'https':
+                port = httplib.HTTPS_PORT
+            else:
+                port = httplib.HTTP_PORT
         else:
             port = self.__url.port
         self.__id_count = 0
@@ -137,7 +143,7 @@ class RawProxy(object):
                                'id': self.__id_count})
         self.__conn.request('POST', self.__url.path, postdata,
                             {'Host': self.__url.hostname,
-                             'User-Agent': USER_AGENT,
+                             'User-Agent': DEFAULT_USER_AGENT,
                              'Authorization': self.__auth_header,
                              'Content-type': 'application/json'})
 
@@ -169,7 +175,7 @@ class RawProxy(object):
         postdata = json.dumps(list(rpc_call_list))
         self.__conn.request('POST', self.__url.path, postdata,
                             {'Host': self.__url.hostname,
-                             'User-Agent': USER_AGENT,
+                             'User-Agent': DEFAULT_USER_AGENT,
                              'Authorization': self.__auth_header,
                              'Content-type': 'application/json'})
 
@@ -189,7 +195,7 @@ class Proxy(RawProxy):
     def __init__(self, service_url=None,
                        service_port=None,
                        btc_conf_file=None,
-                       timeout=HTTP_TIMEOUT,
+                       timeout=DEFAULT_HTTP_TIMEOUT,
                        **kwargs):
         """Create a proxy to a bitcoin RPC service
 
@@ -209,8 +215,16 @@ class Proxy(RawProxy):
         timeout - timeout in seconds before the HTTP interface times out
         """
         super(Proxy, self).__init__(service_url=service_url, service_port=service_port, btc_conf_file=btc_conf_file,
-                                    timeout=HTTP_TIMEOUT,
+                                    timeout=timeout,
                                     **kwargs)
+
+    def dumpprivkey(self, addr):
+        """Return the private key matching an address
+        """
+        r = self._call('dumpprivkey', str(addr))
+
+        return CBitcoinSecret(r)
+
     def getaccountaddress(self, account=None):
         """Return the current Bitcoin address for receiving payments to this account."""
         r = self._call('getaccountaddress', account)
@@ -256,7 +270,8 @@ class Proxy(RawProxy):
     def getinfo(self):
         """Return an object containing various state info"""
         r = self._call('getinfo')
-        r['balance'] = int(r['balance'] * COIN)
+        if 'balance' in r:
+            r['balance'] = int(r['balance'] * COIN)
         r['paytxfee'] = int(r['paytxfee'] * COIN)
         return r
 
@@ -516,6 +531,8 @@ class Proxy(RawProxy):
         """
         return int(self._call('getblockcount'))
 
+    def sendfrom(self, fromaccount, tobitcoinaddress, amount, minconf=1):
+        return self._call('sendfrom', fromaccount, tobitcoinaddress, amount, minconf)
 
     def dumpprivkey(self, bitcoinaddress):
         """
@@ -523,3 +540,9 @@ class Proxy(RawProxy):
         """
         return self._call('dumpprivkey', bitcoinaddress)
 
+
+__all__ = (
+        'JSONRPCException',
+        'RawProxy',
+        'Proxy',
+)

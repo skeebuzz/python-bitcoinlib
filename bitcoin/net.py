@@ -13,11 +13,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import struct
 import socket
-from binascii import hexlify
 
-from .core import PROTO_VERSION, CADDR_TIME_VERSION
-from .core.serialize import *
+from bitcoin.core.serialize import (
+        Serializable,
+        VarStringSerializer,
+        ser_read,
+        uint256VectorSerializer,
+)
+from bitcoin.core import b2lx
 
+PROTO_VERSION = 60002
+CADDR_TIME_VERSION = 31402
 
 class CAddress(Serializable):
     def __init__(self, protover=PROTO_VERSION):
@@ -74,7 +80,7 @@ class CInv(Serializable):
         f.write(self.hash)
 
     def __repr__(self):
-        return "CInv(type=%s hash=%s)" % (self.typemap[self.type], hexlify(self.hash))
+        return "CInv(type=%s hash=%s)" % (self.typemap[self.type], b2lx(self.hash))
 
 
 class CBlockLocator(Serializable):
@@ -168,3 +174,13 @@ class CAlert(Serializable):
 
     def __repr__(self):
         return "CAlert(vchMsg.sz %d, vchSig.sz %d)" % (len(self.vchMsg), len(self.vchSig))
+
+__all__ = (
+        'PROTO_VERSION',
+        'CADDR_TIME_VERSION',
+        'CAddress',
+        'CInv',
+        'CBlockLocator',
+        'CUnsignedAlert',
+        'CAlert',
+)
