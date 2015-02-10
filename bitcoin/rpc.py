@@ -451,7 +451,11 @@ class Proxy(RawProxy):
 
         FIXME: implement options
         """
-        hextx = hexlify(tx.serialize())
+        if getattr(tx, "serialize", None) is not None:
+            hextx = hexlify(tx.serialize())
+        else:
+            # then assume we got a raw string already
+            hextx = tx
         r = self._call('signrawtransaction', hextx, *args)
         r['tx'] = CTransaction.deserialize(unhexlify(r['hex']))
         del r['hex']
@@ -512,7 +516,7 @@ class Proxy(RawProxy):
         """
         Creates a raw transaction
 
-        utxoarr - json array of unspent transaction outputs to spend
+        utxoarr - raw json array of unspent transaction outputs to spend
         toaddresses - addresses and amounts
         """
         return self._call('createrawtransaction', utxoarr, toaddresses)
